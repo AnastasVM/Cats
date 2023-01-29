@@ -1,4 +1,4 @@
-class Popup {
+export class Popup {
     constructor(className) {
         this._className = className;
         this.popup = document.querySelector(`.${className}`)
@@ -22,6 +22,12 @@ class Popup {
         this.popup.classList.remove('popup_active')
         //удаляем обработчик события, когда мод. окно закроется//keyup - нажатая клавиша была отпущена
         document.removeEventListener('keyup', this._handleEscUp)
+    }
+
+    setContent(contentNode) {
+        const containerContent = this.popup.querySelector('.popup__content');//достаем див контент, куда затем будем передавать данные о коте
+        containerContent.innerHTML = '';//чтобы при открытии на другом коте контейнер с контентом был чист
+        containerContent.append(contentNode);//записывать в нее Node которая пришла
     }
 
     setEventListener(){
