@@ -9,7 +9,7 @@
 
 const CONFIG_API = {
     url: 'https://cats.petiteweb.dev/api/single/AnastasiaMysnik',
-    // url: 'https://sb-cats.herokuapp.com/api/2/DanilaNagornyi',
+    
     headers: {
         'Content-Type': 'application/json'
     }
@@ -26,7 +26,6 @@ export class API {
         return res.ok ? res.json() : Promise.reject({...res, message: 'Ошибка сервера'})
     }
 
- 
     getAllCats() {//запрашиваем у сервера всех котов
         return fetch(`${this._url}/show`, {
             method: 'GET'
@@ -41,10 +40,18 @@ export class API {
         }).then(this._onResponse)
     }
 
+    updateCatById(idCat, data) {
+        return fetch(`${this._url}/update/${idCat}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+            headers: this._headers
+        }).then(this._onResponse)
+    }
+
     deleteCatById(idCat){
         return fetch(`${this._url}/delete/${idCat}`, {
              method: 'DELETE',
-         }).then(this._onResponce)
+         }).then(this._onResponse)
      }
 }
 

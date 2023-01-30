@@ -19,13 +19,15 @@ export class Card {
         this.cardImage = this.element.querySelector('.card__image');//достаем картинку
         this.cardLike = this.element.querySelector('.card__like');
         
-        this.cardTitle.textContent = this._dataCat.name;
-        this.cardImage.src = this._dataCat.image;
+        // this.cardTitle.textContent = this._dataCat.name;
+        // this.cardImage.src = this._dataCat.image;
 
         if (this._dataCat.favourite) {
             this.cardLike.classList.toggle("card__like_active");
             // cardLike.remove() можно в элс чтоб удалить серые лайки
         }
+
+        this.updateView();
 
         this.setEventListener()
         return this.element
@@ -43,9 +45,14 @@ export class Card {
         this._dataCat = newData;
     }
 
+    updateView() {//обновление данных карточки, после изменений
+        this.cardTitle.textContent = this._dataCat.name;
+        this.cardImage.src = this._dataCat.image;
+    }
+
     deleteView() {//удаляем карту
-        this.element.remove()
-        this.element = null;
+        this.element.remove()//удаление элемента из DOM
+        this.element = null;//чтобы очистить все ссылки кот. ссылаются на данный эелемент (например обработчики были на элемент повешаны)
     }
 
     setEventListener() {//вешаем обработчик/  по клику на картинку сработает обработчик события, вызовется модальное окно в которое поместим картинку кота

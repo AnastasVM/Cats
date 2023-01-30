@@ -32,14 +32,17 @@ popupAddCat.setEventListener();
 const popupLogin = new Popup('popup-login');
 popupLogin.setEventListener();
 
+const popupLoginEdit = new Popup('popup-login');
+popupLoginEdit.setEventListener();
+
 const popupCatInfo = new Popup('popup-cat-info');
 popupCatInfo.setEventListener();
 
 const popupImage = new PopupImage('popup-image');
 popupImage.setEventListener();
 
-const catsInfoInstance = new CatsInfo('#cats-info-template', handleDeleteCat);
-const catsInfoElement = catsInfoInstance.getElement()
+const catsInfoInstance = new CatsInfo('#cats-info-template', handleEditCatInfo, handleDeleteCat);
+const catsInfoElement = catsInfoInstance.getElement();
 
 //добавляем кота в DOM -дерево
 function createCat(dataCat) {
@@ -99,27 +102,62 @@ function handleFormLogin(e) {//собираем данные, пишем в ку
     btnOpenPopupForm.classList.remove('visually-hidden');
     // добавляем кнопке (Войти) класс и скрываем ее
     btnLoginOpenPopup.classList.add('visually-hidden');
-    
+
+    formLogin.addEventListener('submit', handleFormLoginEdit);
     //закрываем куку
     popupLogin.close();
+}
+
+function handleFormLoginEdit(e) {//собираем данные, пишем в куку(псевдо-авторизация)
+    e.preventDefault();
+
+    const loginData = [...formLogin.elements];
+    const serializeData = serializeForm(loginData);
+
+    //создаем куку
+    Cookies.set('emailEdit', `email=${serializeData.email}`);
+   
+    //закрываем куку
+    popupLoginEdit.close();
 }
 
 function handleCatImage(dataCat) {
     popupImage.open(dataCat);
 }
 
-function handleCatTitle(cardInstance) {
+function handleCatTitle(cardInstance) {//хранится объект карточки со всеми данныеми
     catsInfoInstance.setData(cardInstance);//пробросим новые данные
     popupCatInfo.setContent(catsInfoElement);//пробросили элемент в контент открывшейся карточки 
-    popupCatInfo.open();//открывается окно и все данные итуда пробрасываются
+
+    const isEdit= Cookies.get('emailEdit');
+    if(isEdit) {
+        popupCatInfo.open();//открывается окно и все данные от туда пробрасываются
+
+    } else {
+        popupLoginEdit.open();
+    }
 }
 
 function handleDeleteCat(cardInstance) {
 
-    api.deleteCatById(cardInstance.getId()).then(() => {//запрос к api к конкретной карточке по айди
-        cardInstance.deleteView();//вызываем метод удаления
-        updateLocalStorage(cardInstance.getId(), {type: 'DELETE_CAT'});//чистим локал стораж
-        popupCatInfo.close();//закрываем мод. окно
+    api.deleteCatById(cardInstance.getId()).then(() => { //запрос к api к конкретной карточке по айди
+        cardInstance.deleteView(); //вызываем метод удаления, удалим из дом дерева
+        updateLocalStorage(cardInstance.getId(), {type: 'DELETE_CAT'}); //чистим локал стораж
+        popupCatInfo.close(); //закрываем мод. окно
+    })
+}
+
+function handleEditCatInfo(cardInstance, data) {
+    const {age, description, name, id} = data;
+
+    api.updateCatById(id, {age, description, name}).then(() => {
+
+         // обновляем данные в карточки, которая отображается на странице
+         cardInstance.setData(data);
+         cardInstance.updateView();
+
+         updateLocalStorage(data, {type: 'EDIT_CAT'});
+         popupCatInfo.close(); 
     })
 }
 
@@ -138,8 +176,8 @@ function updateLocalStorage(data, action) { // {type: 'ADD_CATS'} - функци
             return;
         case 'DELETE_CAT':
             console.log('DELETE_CAT', data);
-            const newStorage = oldStorage.filter(cat => cat.id !== data);//cat - это каждый элемент/метод фильтр создает новый массив: ищет каждого кода и если не будет совпадать с тем котом, который мы будем пробрасывать, то этот кот сюда не вернется
-            localStorage.setItem('cats', JSON.stringify(newStorage));//перезаписываем новым массив
+            const newStorage = oldStorage.filter(cat => cat.id !== data); //cat - это каждый элемент/метод фильтр создает новый массив: ищет каждого кода и если не будет совпадать с тем котом, который мы будем пробрасывать, то этот кот сюда не вернется
+            localStorage.setItem('cats', JSON.stringify(newStorage)); //перезаписываем новым массив
             return;
         case 'EDIT_CAT'://редактирование котов
             const updateStorage = oldStorage.map(cat => cat.id === data.id ? data : cat);//map возвращает новый массив
@@ -188,11 +226,3 @@ if (!isAuth) {
 // console.log(JSON.parse(localStorage.getItem('tel')));
 // localStorage.removeItem('tel');
 // localStorage.clear()
-
-// Повторная авторизация, вызываем при клике на каждую карточку
-// const cardNamesLoginOpenPopup = document.querySelectorAll('.card__name');
-// cardNamesLoginOpenPopup.forEach(cardName => {
-//     cardName.addEventListener('click', () => popupLogin.open());
-//     })
-
-
